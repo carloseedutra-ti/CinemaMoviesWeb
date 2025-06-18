@@ -8,6 +8,14 @@ export default function MovieDetails() {
   const { language } = useContext(LanguageContext);
   const [movie, setMovie] = useState(null);
   const [videoUrl, setVideoUrl] = useState("");
+  const [cast, setCast] = useState([]);
+
+  const PLACEHOLDER_IMAGES = {
+    male: "https://www.w3schools.com/howto/img_avatar.png",
+    female: "https://www.w3schools.com/howto/img_avatar2.png",
+    neutral:
+      "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png",
+  };
 
   useEffect(() => {
     const fetchMovie = async () => {
@@ -43,9 +51,30 @@ export default function MovieDetails() {
       }
     };
 
+    const fetchCredits = async () => {
+      try {
+        const response = await api.get(`/movie/${id}/credits`, {
+          params: { language },
+          headers: {
+            Authorization: `Bearer ${import.meta.env.VITE_MDB_API_KEY}`,
+          },
+        });
+        setCast(response.data.cast.slice(0, 20));
+      } catch (error) {
+        console.error("Erro ao buscar créditos do filme:", error);
+      }
+    };
+
     fetchMovie();
     fetchTrailer();
+    fetchCredits();
   }, [id, language]);
+
+  const getPlaceholderByGender = (gender) => {
+    if (gender === 1) return PLACEHOLDER_IMAGES.female;
+    if (gender === 2) return PLACEHOLDER_IMAGES.male;
+    return PLACEHOLDER_IMAGES.neutral;
+  };
 
   if (!movie) return <p className="text-white px-6 py-4">Carregando...</p>;
 
@@ -109,6 +138,37 @@ export default function MovieDetails() {
           </div>
         )}
       </div>
+
+      {/* Elenco */}
+      {cast.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-2xl font-semibold mb-4">Elenco</h2>
+          <div className="flex overflow-x-auto gap-4 pb-4">
+            {cast.map((actor) => (
+              <div
+                key={actor.cast_id || actor.id}
+                className="flex-shrink-0 w-32 text-center"
+              >
+                <img
+                  src={
+                    actor.profile_path
+                      ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
+                      : getPlaceholderByGender(actor.gender)
+                  }
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = getPlaceholderByGender(actor.gender);
+                  }}
+                  alt={actor.name}
+                  className="w-full h-44 object-cover rounded-lg mb-2"
+                />
+                <p className="text-sm font-semibold">{actor.name}</p>
+                <p className="text-xs text-gray-400">{actor.character}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Trailer */}
       {videoUrl && (
