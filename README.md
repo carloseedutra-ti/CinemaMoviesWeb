@@ -46,5 +46,5 @@ Este projeto foi desenvolvido como parte da disciplina **Projeto de Website - Fr
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/seu-usuario/movie-web-portal.git
+   git clone https://github.com/carloseedutra-ti/CinemaMovieWeb.git
    ```
